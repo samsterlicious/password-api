@@ -1,16 +1,18 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Stack, StackProps } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import createApi from "./apiGateway";
+import getDynamoTable from "./database";
+import { createLambdas } from "./lambdas";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class PasswordApiStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const table = getDynamoTable(this);
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'PasswordApiQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const lambdas = createLambdas(this, table);
+
+    createApi(this, lambdas);
   }
 }
