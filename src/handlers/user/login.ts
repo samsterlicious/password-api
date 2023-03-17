@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
-import { randomBytes } from "crypto";
 import { getHash } from "../../util/encrypt";
+import { getPassword } from "../../util/password";
 import { formatApiResponse } from "../../util/response";
 
 export async function main(
@@ -16,26 +16,23 @@ export async function main(
   }
 
   const documentClient = new DocumentClient();
-  const hashPassword = getHash(body.password);
-  const iv = randomBytes(16).toString("base64");
-  const key = `${body.email}#${hashPassword}#${iv}`;
-  try {
-    await documentClient
-      .put({
-        TableName: TABLE_NAME ?? "",
-        Item: {
-          id: "USER",
-          sort_key: body.email,
-          g1_id: "key",
-          g1_sk: key,
-        },
-        ConditionExpression: "attribute_not_exists(sort_key)",
-      })
-      .promise();
 
-    return formatApiResponse({ key });
-  } catch (e) {
-    return formatApiResponse({ message: "user already exists" }, 500);
+  const response = await documentClient
+    .get({
+      TableName: TABLE_NAME ?? "",
+      Key: {
+        id: "USER",
+        sort_key: body.email,
+      },
+    })
+    .promise();
+
+  const item = response.Item;
+
+  if (item && getHash(body.password) === getPassword(item.g1_sk)) {
+    return formatApiResponse({ key: (response.Item ?? {}).g1_sk });
+  } else {
+    return formatApiResponse({ message: "No user" }, 404);
   }
 }
 

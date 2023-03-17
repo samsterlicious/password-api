@@ -18,13 +18,24 @@ export function createUserLambdas(
     }
   );
 
+  const loginLambda = new lambdaNodejs.NodejsFunction(scope, "loginLambda", {
+    entry: "src/handlers/user/login.ts",
+    handler: "main",
+    environment: {
+      TABLE_NAME: table.tableName,
+    },
+  });
+
   table.grantReadWriteData(createUserLambda);
+  table.grantReadData(loginLambda);
 
   return {
     create: createUserLambda,
+    login: loginLambda,
   };
 }
 
 export type UserLambdas = {
   create: lambdaNodejs.NodejsFunction;
+  login: lambdaNodejs.NodejsFunction;
 };
