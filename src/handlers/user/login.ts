@@ -19,7 +19,7 @@ export async function main(
 
   const response = await documentClient
     .get({
-      TableName: TABLE_NAME ?? "",
+      TableName: TABLE_NAME!,
       Key: {
         id: "USER",
         sort_key: body.email,
@@ -30,7 +30,7 @@ export async function main(
   const item = response.Item;
 
   if (item && getHash(body.password) === getPassword(item.g1_sk)) {
-    return formatApiResponse({ key: (response.Item ?? {}).g1_sk });
+    return formatApiResponse({ key: response.Item!.g1_sk });
   } else {
     return formatApiResponse({ message: "No user" }, 404);
   }

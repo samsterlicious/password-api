@@ -5,9 +5,9 @@ import { decryptText } from "../../util/encrypt";
 export async function main(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const { TABLE_NAME } = process.env;
+  const { PASSWORD_IV, TABLE_NAME } = process.env;
 
-  const { email, iv, secretPassword } = event.requestContext.authorizer!;
+  const { email, secretPassword } = event.requestContext.authorizer!;
 
   const { hostname } = event.queryStringParameters!;
 
@@ -27,11 +27,11 @@ export async function main(
   return {
     body: JSON.stringify(
       (resp.Items ?? []).map((item) => ({
-        password: decryptText(item.password, secretPassword, iv),
+        password: decryptText(item.password, secretPassword, PASSWORD_IV!),
         username: decryptText(
           item.sort_key.replace(/^.+#/, ""),
           secretPassword,
-          iv
+          PASSWORD_IV!
         ),
       }))
     ),

@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
-import { randomBytes } from "crypto";
 import { getHash } from "../../util/encrypt";
 import { formatApiResponse } from "../../util/response";
 
@@ -17,12 +16,11 @@ export async function main(
 
   const documentClient = new DocumentClient();
   const hashPassword = getHash(body.password);
-  const iv = randomBytes(16).toString("base64");
-  const key = `${body.email}#${hashPassword}#${iv}`;
+  const key = `${body.email}#${hashPassword}`;
   try {
     await documentClient
       .put({
-        TableName: TABLE_NAME ?? "",
+        TableName: TABLE_NAME!,
         Item: {
           id: "USER",
           sort_key: body.email,

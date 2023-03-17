@@ -5,11 +5,11 @@ import { encryptText } from "../../util/encrypt";
 export async function main(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const { TABLE_NAME } = process.env;
+  const { PASSWORD_IV, TABLE_NAME } = process.env;
 
   const body: Body = JSON.parse(event.body!);
 
-  const { email, iv, secretPassword } = event.requestContext.authorizer!;
+  const { email, secretPassword } = event.requestContext.authorizer!;
 
   const documentClient = new DocumentClient();
 
@@ -21,9 +21,15 @@ export async function main(
         sort_key: `${body.hostname}#${encryptText(
           body.username,
           secretPassword,
-          iv
+          PASSWORD_IV!
         )}`,
-        password: encryptText(body.password, secretPassword, iv),
+        g1_id: "Password",
+        g1_sk: `${body.hostname}#${encryptText(
+          body.username,
+          secretPassword,
+          PASSWORD_IV!
+        )}`,
+        password: encryptText(body.password, secretPassword, PASSWORD_IV!),
       },
     })
     .promise();

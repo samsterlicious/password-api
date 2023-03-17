@@ -4,7 +4,8 @@ import { Construct } from "constructs";
 
 export function createPasswordLambdas(
   scope: Construct,
-  table: dynamodb.Table
+  table: dynamodb.Table,
+  passwordIv: string
 ): PasswordLambdas {
   const createPasswordLambda = new lambdaNodejs.NodejsFunction(
     scope,
@@ -13,6 +14,7 @@ export function createPasswordLambdas(
       entry: "src/handlers/password/create.ts",
       handler: "main",
       environment: {
+        PASSWORD_IV: passwordIv,
         TABLE_NAME: table.tableName,
       },
     }
@@ -25,6 +27,7 @@ export function createPasswordLambdas(
       entry: "src/handlers/password/get.ts",
       handler: "main",
       environment: {
+        PASSWORD_IV: passwordIv,
         TABLE_NAME: table.tableName,
       },
     }

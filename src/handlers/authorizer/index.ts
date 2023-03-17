@@ -14,11 +14,13 @@ export async function main(
   const key =
     event.headers?.Authorization ?? event.headers?.authorization ?? "";
 
+  if (!key) return generatePolicy("Deny");
+
   const documentClient = new DocumentClient();
 
   const response = await documentClient
     .query({
-      TableName: TABLE_NAME ?? "",
+      TableName: TABLE_NAME!,
       IndexName: "gsi1",
       KeyConditionExpression: "g1_id = :id and g1_sk = :sk",
       ExpressionAttributeValues: {
@@ -32,8 +34,7 @@ export async function main(
   if (items && items.length > 0) {
     return generatePolicy("Allow", {
       email: key.replace(/#.+$/, ""),
-      iv: key.replace(/^.+#/, ""),
-      secretPassword: key.replace(/^.+#([^#]+)#.+$/, "$1"),
+      secretPassword: key.replace(/^.+#$/, ""),
     });
   } else {
     return generatePolicy("Deny");
